@@ -79,6 +79,7 @@ postFallthrough = do
   body <- LC.unpack <$> readRequestBody (1024 * 1024) -- TODO Is it enough ?
   let to = C.unpack uri
   response <- liftIO $ post (baseUrl ++ to) [] cookies $ LC.pack body
+  liftIO $ print response
   addCookies response
   writeBS $ rspBody response
 
@@ -92,6 +93,7 @@ getFallthrough = do
   liftIO $ print cookies
   let to = C.unpack uri
   response <- liftIO $ get (baseUrl ++ to) [] cookies
+  liftIO $ print response
   addCookies response
   writeBS $ rspBody response
 
