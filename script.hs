@@ -21,13 +21,18 @@ import Snap.Util.FileServe
 import Snap.Http.Server
 import Web.Cookie
 
+-- Example call:
+-- python oe-xmlrpc-caller.py --host 172.17.1.62 --port 8000 35812-8-0-ebc5cd-all
+-- python oe-xmlrpc-caller.py --host 172.17.1.62 --port 8000 35812-8-0-ebc5cd-all res.users read 1
+baseUrl = "http://35812-8-0-ebc5cd.runbot.odoo.com:2154"
+
 main :: IO ()
 main = quickHttpServe site
 
 site :: Snap ()
 site = route
-  [ ("xmlrpc/common", xmlrpcHandler "xmlrpc/common")
-  , ("xmlrpc/object", xmlrpcFallthrough "xmlrpc/object")
+  [ ("xmlrpc/common", xmlrpcHandler "/xmlrpc/common")
+  , ("xmlrpc/object", xmlrpcFallthrough "/xmlrpc/object")
   ] <|> httpFallthrough
 
 -- | Try to handle the XML-RPC call direclty, or forward it to the
@@ -55,7 +60,7 @@ xmlrpcFallthrough to = do
     Right mc' -> forward mc' to
 
 forward c to = do
-  response <- liftIO $ post ("http://trunk-27602.runbot.openerp.com:9335/" ++ to) [] [] $ renderCall c
+  response <- liftIO $ post (baseUrl ++ to) [] [] $ renderCall c
   -- writeLBS $ renderResponse $ parseResponse response
   writeBS $ rspBody response
 
@@ -73,7 +78,7 @@ postFallthrough = do
   liftIO $ print cookies
   body <- LC.unpack <$> readRequestBody (1024 * 1024) -- TODO Is it enough ?
   let to = C.unpack uri
-  response <- liftIO $ post ("http://trunk-27602.runbot.openerp.com:9335" ++ to) [] cookies $ LC.pack body
+  response <- liftIO $ post (baseUrl ++ to) [] cookies $ LC.pack body
   addCookies response
   writeBS $ rspBody response
 
@@ -86,7 +91,7 @@ getFallthrough = do
   liftIO $ print uri
   liftIO $ print cookies
   let to = C.unpack uri
-  response <- liftIO $ get ("http://trunk-27602.runbot.openerp.com:9335" ++ to) [] cookies
+  response <- liftIO $ get (baseUrl ++ to) [] cookies
   addCookies response
   writeBS $ rspBody response
 
