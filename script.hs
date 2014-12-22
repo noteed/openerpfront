@@ -71,10 +71,14 @@ httpFallthrough =
   method Snap.POST postFallthrough <|>
   method Snap.GET getFallthrough
 
+-- TODO Propagate backend HTTP code to client (currently, a 500 is returned as a 200).
 postFallthrough :: Snap ()
 postFallthrough = do
+  req <- Snap.getRequest
   uri <- Snap.rqURI <$> Snap.getRequest
   cookies <- Snap.rqCookies <$> Snap.getRequest
+  liftIO $ print req
+  liftIO $ print uri
   liftIO $ print cookies
   body <- LC.unpack <$> readRequestBody (1024 * 1024) -- TODO Is it enough ?
   let to = C.unpack uri
